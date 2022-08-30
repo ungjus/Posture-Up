@@ -10,7 +10,7 @@ import NotifcationAlert from './components/notificationAlert/notificationAlert';
 const Main = () => {
   const MIN_MINUTES: number = 2;
   const MAX_MINUTES: number = 60;
-  const TO_MINUTES: number = 1000;
+  const TO_MINUTES: number = 60 * 1000;
   const ALPHA: number = .5;
 
   const [switchOff, setSwitchOff] = useState<boolean>(window.electron.ipcRenderer.store.get('switchOff'));
@@ -178,5 +178,5 @@ export default function App() {
 TODO:
 - electron notification state (for do no disturb toggle?)
 - sound on/off (does not work :( )
-- modify notifications for windows
+- keep track of maxStreak, put streak on notification
 */

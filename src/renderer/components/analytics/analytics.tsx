@@ -33,7 +33,7 @@ const Analytics = (props: {
           placement={'bottom'}
           overlay={
             <Tooltip id={`tooltip`}>
-              Click me to reset percentage
+              Click to reset percentage
             </Tooltip>
           }
         >

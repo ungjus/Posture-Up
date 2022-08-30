@@ -6,7 +6,7 @@
   "author": {
     "name": "Justin Ung",
     "email": "justinung22@gmail.com",
-    "url": "https://github.com/electron-react-boilerplate"
+    "url": "https://github.com/ungjus/Posture-Up"
   },
   "main": "./dist/main/main.js",
   "scripts": {

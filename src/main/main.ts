@@ -17,6 +17,7 @@ import { resolveHtmlPath } from './util';
 import { generateMessage } from './notificationMessages';
 import Store from 'electron-store';
 import { schema, SchemaType } from './userSchema';
+require('update-electron-app')()
 
 
 
@@ -61,7 +62,7 @@ const createNotification = (msg: string) => {
     notification = new Notification({
       title: "Posture Up!",
       body: msg,
-      sound: '~/Library/Sounds',
+      sound: '~/Library/Sounds/Posture',
       actions: [{ type: "button", text: "Yes" }, { type: "button", text: "No" }]
     });
   }
