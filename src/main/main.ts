@@ -9,11 +9,16 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, Notification, powerMonitor, Tray } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { generateMessage } from './notificationMessages';
+import Store from 'electron-store';
+import { schema, SchemaType } from './userSchema';
+
+
 
 class AppUpdater {
   constructor() {
@@ -22,6 +27,93 @@ class AppUpdater {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
+
+const store = new Store<SchemaType>(schema);
+
+/**
+ * Event listener to get key from store (user preferences)
+ */
+ipcMain.on('electron-store-get', async (event, val) => {
+  event.returnValue = store.get(val);
+});
+
+/**
+ * Event listener to store key, value pair into store for persistant user preferences
+ */
+ipcMain.on('electron-store-set', async (_event, key, val) => {
+  store.set(key, val);
+});
+
+let notification: Notification | null = null;
+
+/**
+ * Creates the notification
+ * 
+ * @param msg Notification message
+ */
+const createNotification = (msg: string) => {
+  if (process.platform !== 'darwin') {
+    notification = new Notification({
+      title: "Posture Up!",
+      body: msg
+    });
+  } else {
+    notification = new Notification({
+      title: "Posture Up!",
+      body: msg,
+      sound: '~/Library/Sounds',
+      actions: [{ type: "button", text: "Yes" }, { type: "button", text: "No" }]
+    });
+  }
+
+}
+/**
+ * Displays notification to user
+ * 
+ * Creates event listener for user input (yes/no)
+ * 
+ * @param msg - Notifcication Message
+ * 
+ */
+const showNotification = (msg: string) => {
+  notification?.show()
+  notification?.addListener('action', (_event, index) => {
+    if (!mainWindow?.isFocused()) {
+      mainWindow?.blur();
+    }
+    mainWindow?.webContents.send("notification-response", index === 0, msg)
+    notification?.close()
+  })
+}
+
+/**
+ * Event listener to create notification from renderer interval
+ * 
+ * Does not notify if system is locked
+ */
+ipcMain.handle('notify', () => {
+  if (powerMonitor.getSystemIdleState(10) !== 'locked') {
+    const msg = generateMessage();
+    createNotification(msg)
+    showNotification(msg);
+    return msg;
+  }
+  return;
+})
+
+/**
+ * Event listener to close notification from device
+ * 
+ */
+ipcMain.on('closeNotification', () => {
+  notification?.close();
+})
+
+
+/**
+ * Below constains Electron-React Boilerplate Code
+ * 
+ */
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -39,9 +131,9 @@ if (process.env.NODE_ENV === 'production') {
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
-if (isDebug) {
-  require('electron-debug')();
-}
+// if (isDebug) {
+//   require('electron-debug')();
+// }
 
 const installExtensions = async () => {
   const installer = require('electron-devtools-installer');
@@ -56,10 +148,11 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+
 const createWindow = async () => {
-  if (isDebug) {
-    await installExtensions();
-  }
+  // if (isDebug) {
+  //   await installExtensions();
+  // }
 
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
@@ -71,9 +164,11 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
-    icon: getAssetPath('icon.png'),
+    width: 900,
+    height: 750,
+    minWidth: 400,
+    minHeight: 650,
+    icon: getAssetPath('SpineColorIcon.png'),
     webPreferences: {
       sandbox: false,
       preload: app.isPackaged
@@ -113,9 +208,6 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
-/**
- * Add event listeners...
- */
 
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even

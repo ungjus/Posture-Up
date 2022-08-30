@@ -17,5 +17,18 @@ contextBridge.exposeInMainWorld('electron', {
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
+    notify : () => {return ipcRenderer.invoke('notify')},
+    closeNotification : () => {ipcRenderer.send('closeNotification')},
+    notiResponse: (callback:any) => ipcRenderer.once('notification-response', callback),
+    store: {
+      get(key:string) {
+        return ipcRenderer.sendSync('electron-store-get', key);
+      },
+      set(key:string, val:any) {
+        ipcRenderer.send('electron-store-set', key, val);
+      }
+    }
   },
+  
 });
+
