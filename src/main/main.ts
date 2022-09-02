@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, Notification, powerMonitor, Tray } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, Notification, powerMonitor, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -17,8 +17,6 @@ import { resolveHtmlPath } from './util';
 import { generateMessage } from './notificationMessages';
 import Store from 'electron-store';
 import { schema, SchemaType } from './userSchema';
-require('update-electron-app')()
-
 
 
 class AppUpdater {
@@ -129,25 +127,25 @@ if (process.env.NODE_ENV === 'production') {
   sourceMapSupport.install();
 }
 
-const isDebug =
-  process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+// const isDebug =
+//   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
 
 // if (isDebug) {
 //   require('electron-debug')();
 // }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
+// const installExtensions = async () => {
+//   const installer = require('electron-devtools-installer');
+//   const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
+//   const extensions = ['REACT_DEVELOPER_TOOLS'];
 
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload
-    )
-    .catch(console.log);
-};
+//   return installer
+//     .default(
+//       extensions.map((name) => installer[name]),
+//       forceDownload
+//     )
+//     .catch(console.log);
+// };
 
 
 const createWindow = async () => {
@@ -208,6 +206,30 @@ const createWindow = async () => {
   // eslint-disable-next-line
   new AppUpdater();
 };
+
+autoUpdater.on("update-available", (updateInfo:any) => {
+  const dialogOpts = {
+		type: 'info',
+		buttons: ['Ok'],
+		title: 'Application Update',
+		message: updateInfo,
+		detail: 'A new version is being downloaded.'
+	}
+	dialog.showMessageBox(dialogOpts);
+});
+
+autoUpdater.on("update-downloaded", (event: any) => {
+	const dialogOpts = {
+		type: 'info',
+		buttons: ['Restart', 'Later'],
+		title: 'Application Update',
+		message: event,
+		detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+	};
+	dialog.showMessageBox(dialogOpts).then((returnValue) => {
+		if (returnValue.response === 0) autoUpdater.quitAndInstall()
+	})
+});
 
 
 app.on('window-all-closed', () => {

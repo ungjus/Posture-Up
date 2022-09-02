@@ -1,5 +1,5 @@
 {
-  "description": "A foundation for scalable desktop apps",
+  "description": "Interactive posture fixing app",
   "keywords": [
     "electron",
     "boilerplate",
@@ -39,11 +39,10 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
-    "publish": "electron-forge publish",
+    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish always",
+    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "prepare": "husky install",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
     "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
@@ -121,6 +120,7 @@
     "update-electron-app": "^2.0.1"
   },
   "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.65",
     "@electron-forge/publisher-github": "^6.0.0-beta.65",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.1",
@@ -144,7 +144,6 @@
     "css-minimizer-webpack-plugin": "^4.0.0",
     "detect-port": "^1.3.0",
     "electron": "^20.0.2",
-    "electron-builder": "^23.3.3",
     "electron-devtools-installer": "^3.2.0",
     "electron-notarize": "^1.2.1",
     "electron-rebuild": "^3.2.9",
@@ -214,7 +213,7 @@
       "entitlements": "assets/entitlements.mac.plist",
       "entitlementsInherit": "assets/entitlements.mac.plist",
       "gatekeeperAssess": false,
-      "publish": "github"
+      "publish": ["github"]
     },
     "dmg": {
       "contents": [
@@ -233,7 +232,8 @@
     "win": {
       "target": [
         "nsis"
-      ]
+      ],
+      "publish": ["github"]
     },
     "linux": {
       "target": [
@@ -271,20 +271,8 @@
   },
   "config": {
     "forge": {
-      "publishers": [
-        {
-          "name": "@electron-forge/publisher-github",
-          "config": {
-            "repository": {
-              "owner": "ungjus",
-              "name": "Posture-Up"
-            },
-            "prerelease": false,
-            "draft": true,
-            "authToken": "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"
-          }
-        }
-      ]
+      "makers": [],
+      "publishers": []
     }
   }
 }
